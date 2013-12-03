@@ -34,6 +34,7 @@
 
 (function(window, document, undefined){
   "use strict";
+  
   var GeoKey = function(params){
     var defaults = {
       target: ''
@@ -67,6 +68,7 @@
     }
   };
   
+  // Converts [a-z] input string to Georgian
   GeoKey.prototype.translate = function(string) {
     var input = string.split('');
     var result = '', offset, chr;
@@ -93,8 +95,16 @@
     
     return result;
   };
+
   
-  // HTML5 Polyfills
+  /**
+   *
+   * Polyfills and shims for older browsers that might have a problem with GeoKey Library
+   * @source: https://github.com/inexorabletash/polyfill
+   *
+   */
+  
+  // document.querySelectorAll
   if (!document.querySelectorAll) {
     document.querySelectorAll = function (selectors) {
       var style = document.createElement('style'), elements = [], element;
@@ -115,6 +125,7 @@
     };
   }
 
+  // document.getElementsByClassName
   if (!document.getElementsByClassName) {
     document.getElementsByClassName = function (classNames) {
       classNames = String(classNames).replace(/^|\s+/g, '.');
@@ -122,6 +133,7 @@
     };
   }
   
+  // [].map
   if (!Array.prototype.map) {
     Array.prototype.map = function (fun /*, thisp */) {
       "use strict";
@@ -144,5 +156,40 @@
     };
   }
   
+  // [].indexOf
+  if (!Array.prototype.indexOf) {
+    Array.prototype.indexOf = function (searchElement /*, fromIndex */) {
+      "use strict";
+
+      if (this === void 0 || this === null) { throw new TypeError(); }
+
+      var t = Object(this);
+      var len = t.length >>> 0;
+      if (len === 0) { return -1; }
+
+      var n = 0;
+      if (arguments.length > 0) {
+        n = Number(arguments[1]);
+        if (isNaN(n)) {
+          n = 0;
+        } else if (n !== 0 && n !== (1 / 0) && n !== -(1 / 0)) {
+          n = (n > 0 || -1) * Math.floor(Math.abs(n));
+        }
+      }
+
+      if (n >= len) { return -1; }
+
+      var k = n >= 0 ? n : Math.max(len - Math.abs(n), 0);
+
+      for (; k < len; k++) {
+        if (k in t && t[k] === searchElement) {
+          return k;
+        }
+      }
+      return -1;
+    };
+  }
+  
+  // Binds a function constructor to global object
   window.GeoKey = GeoKey;
 })(window, document);
