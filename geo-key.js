@@ -62,13 +62,14 @@
       }
     }(this.params);
     
-    /* Inline test case */
     for (var i in this.elements) {
-      this.elements[i].value = this.constructor.prototype; // Should put [object Object]
+      this.listen(this.elements[i], 'keypress', function(event){
+        GeoKey.prototype.convert(this, event);
+      });
     }
   };
   
-  // Converts [a-z] input string to Georgian
+  // Returns [a-z] input string in Georgian
   GeoKey.prototype.translate = function(string) {
     var input = string.split('');
     var result = '', offset, chr;
@@ -95,6 +96,49 @@
     
     return result;
   };
+  
+  GeoKey.prototype.listen = function(element, eventName, callback) {
+      if (element.addEventListener) {
+          element.addEventListener(eventName, callback, false);
+      } else if (element.attachEvent) {
+          element.attachEvent("on" + eventName, callback);
+      }
+  }
+  
+  GeoKey.prototype.convert = function(element, event) {
+    var val = element.value;
+    var start, end;
+    var charCode = typeof event.which === 'number' ? event.which : event.keyCode;
+    
+    if (charCode && charCode > 32) {
+      if (typeof element.selectionStart === 'number' && typeof element.selectionEnd === 'number') {        
+        start = element.selectionStart;
+        end = element.selectionEnd;
+        element.value = val.slice(0, start) + GeoKey.prototype.translate(String.fromCharCode(charCode)) + val.slice(end);
+        element.selectionStart = element.selectionEnd = start + 1;        
+      } else {        
+        if (document.selection && document.selection.createRange) {
+          var selectionRange = document.selection.createRange();
+          var textInputRange = element.createTextRange();
+          var precedingRange = element.createTextRange();
+          var bookmark = selectionRange.getBookmark();
+          textInputRange.moveToBookmark(bookmark);
+          precedingRange.setEndPoint('EndToStart', textInputRange);
+          start = precedingRange.text.length;
+          end = start + selectionRange.text.length;
+
+          element.value = val.slice(0, start) + GeoKey.prototype.translate(String.fromCharCode(charCode)) + val.slice(end);
+          start++;
+
+          textInputRange = element.createTextRange();
+          textInputRange.collapse(true);
+          textInputRange.move('character', start - (element.value.slice(0, start).split("\r\n").length - 1));
+          textInputRange.select();
+        }
+      }
+      event.preventDefault();
+    } 
+  }
 
   
   /**
