@@ -36,6 +36,7 @@
   "use strict";
   
   var GeoKey = function(params){
+    // Target set to non empty value will not work on IE6
     var defaults = {
       target: ''
     };
@@ -56,16 +57,21 @@
     // Elements that need to be worked on
     this.elements = function(params){
       if (params.target === '') {
-        return document.querySelectorAll('input[type=text],input[type=edit]');
+        return document.querySelectorAll('input[type=text],input[type=edit],textarea');
       } else {
         return document.getElementsByClassName(params.target);
       }
     }(this.params);
     
-    for (var i in this.elements) {
-      this.listen(this.elements[i], 'keypress', function(event){
-        GeoKey.prototype.convert(this, event);
-      });
+    // Track changes to inputs set
+    var input, that = this;
+    for (var c = 0; c < this.elements.length; c += 1) {
+      input = this.elements[c];
+      (function(that, input) { 
+        that.listen(input, 'keypress', function(event){
+          GeoKey.prototype.convert(input, event);
+        });
+      })(that, input);
     }
   };
   
@@ -105,42 +111,68 @@
       }
   }
   
-  GeoKey.prototype.convert = function(element, event) {
-    var val = element.value;
+  // Works on a DOM element to replace a character upon keypress
+  GeoKey.prototype.convert = function(element, event) {    
     var start, end;
-    var charCode = typeof event.which === 'number' ? event.which : event.keyCode;
+    var character = typeof event.which === 'number' ? event.which : event.keyCode;
     
-    if (charCode && charCode > 32) {
-      if (typeof element.selectionStart === 'number' && typeof element.selectionEnd === 'number') {        
-        start = element.selectionStart;
-        end = element.selectionEnd;
-        element.value = val.slice(0, start) + GeoKey.prototype.translate(String.fromCharCode(charCode)) + val.slice(end);
-        element.selectionStart = element.selectionEnd = start + 1;        
-      } else {        
-        if (document.selection && document.selection.createRange) {
-          var selectionRange = document.selection.createRange();
-          var textInputRange = element.createTextRange();
-          var precedingRange = element.createTextRange();
-          var bookmark = selectionRange.getBookmark();
-          textInputRange.moveToBookmark(bookmark);
-          precedingRange.setEndPoint('EndToStart', textInputRange);
-          start = precedingRange.text.length;
-          end = start + selectionRange.text.length;
+    if (!character || character <= 32) {
+      return false;
+    }
+    
+    if (typeof element.selectionStart === 'number' && typeof element.selectionEnd === 'number') {        
+      // For modern browsers and IE9+
+      start = element.selectionStart;
+      end = element.selectionEnd;
+      element.value = element.value.slice(0, start) + GeoKey.prototype.translate(String.fromCharCode(character)) + element.value.slice(end);
+      element.selectionStart = element.selectionEnd = start + 1;        
+    } else {
+      // For IE6, IE7, IE8  
+      range = document.selection.createRange();
+      
+      charLength = element.value.length;
+      normal = element.value.replace(/\r\n/g, "\n");
 
-          element.value = val.slice(0, start) + GeoKey.prototype.translate(String.fromCharCode(charCode)) + val.slice(end);
-          start++;
+      // Input scope only
+      textInputRange = element.createTextRange();
+      textInputRange.moveToBookmark(range.getBookmark());
 
-          textInputRange = element.createTextRange();
-          textInputRange.collapse(true);
-          textInputRange.move('character', start - (element.value.slice(0, start).split("\r\n").length - 1));
-          textInputRange.select();
-        }
+      // Start and end of the selection should be at the end of input
+      endRange = element.createTextRange();
+      endRange.collapse(false);
+
+      if (textInputRange.compareEndPoints('StartToEnd', endRange) > -1) {
+          start = end = charLength;
+      } else {
+          start = -textInputRange.moveStart('character', -charLength);
+          start += normal.slice(0, start).split("\n").length - 1;
+
+          if (textInputRange.compareEndPoints('EndToEnd', endRange) > -1) {
+              end = charLength;
+          } else {
+              end = -textInputRange.moveEnd('character', -charLength);
+              end += normal.slice(0, end).split("\n").length - 1;
+          }
       }
+
+      // Add computed value in the right place
+      element.value = element.value.slice(0, start) + GeoKey.prototype.translate(String.fromCharCode(character)) + element.value.slice(end);
+      start++;
+
+      textInputRange = element.createTextRange();
+      textInputRange.collapse(true);
+      textInputRange.move('character', start - (element.value.slice(0, start).split("\r\n").length - 1));
+      textInputRange.select();
+    }
+    
+    if (event.preventDefault) {
       event.preventDefault();
-    } 
+    } else {
+      event.returnValue = false;
+      return event;
+    }
   }
 
-  
   /**
    *
    * Polyfills and shims for older browsers that might have a problem with GeoKey Library
@@ -170,11 +202,29 @@
   }
 
   // document.getElementsByClassName
-  if (!document.getElementsByClassName) {
-    document.getElementsByClassName = function (classNames) {
-      classNames = String(classNames).replace(/^|\s+/g, '.');
-      return document.querySelectorAll(classNames);
-    };
+  if (typeof document.getElementsByClassName!='function') {
+      document.getElementsByClassName = function() {
+          var elms = document.getElementsByTagName('*');
+          var ei = new Array();
+          for (i=0;i<elms.length;i++) {
+              if (elms[i].getAttribute('class')) {
+                  ecl = elms[i].getAttribute('class').split(' ');
+                  for (j=0;j<ecl.length;j++) {
+                      if (ecl[j].toLowerCase() == arguments[0].toLowerCase()) {
+                          ei.push(elms[i]);
+                      }
+                  }
+              } else if (elms[i].className) {
+                  ecl = elms[i].className.split(' ');
+                  for (j=0;j<ecl.length;j++) {
+                      if (ecl[j].toLowerCase() == arguments[0].toLowerCase()) {
+                          ei.push(elms[i]);
+                      }
+                  }
+              }
+          }
+          return ei;
+      }
   }
   
   // [].map
