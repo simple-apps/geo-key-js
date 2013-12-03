@@ -36,6 +36,11 @@
   "use strict";
   
   var GeoKey = function(params){
+    // Fix silently
+    if (!(this instanceof GeoKey)) {
+      return new GeoKey(arguments);
+    };
+        
     // Target set to non empty value will not work on IE6
     var defaults = {
       target: ''
