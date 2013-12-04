@@ -61,7 +61,7 @@
     // Elements that need to be worked on
     this.elements = function(params){
       if (params.target === '') {
-        return document.querySelectorAll('input[type=text],input[type=edit],textarea,div');
+        return document.querySelectorAll('input[type=text],input[type=edit],textarea,div,iframe');
       } else {
         return document.getElementsByClassName(params.target);
       }
@@ -108,18 +108,22 @@
   };
   
   GeoKey.prototype.listen = function(element, eventName, callback) {
-    console.log(element);
-      if (element.addEventListener) {
-          element.addEventListener(eventName, callback, false);
-      } else if (element.attachEvent) {
-          element.attachEvent("on" + eventName, callback);
-      }
+    if (element.nodeName === 'IFRAME') {
+      element = element.contentWindow.document;
+    }
+    if (element.addEventListener) {
+        element.addEventListener(eventName, callback, false);
+    } else if (element.attachEvent) {
+        element.attachEvent("on" + eventName, callback);
+    }
   }
   
   // Works on a DOM element to replace a character upon keypress
   GeoKey.prototype.convert = function(element, event) {    
     var start, end;
     var character = typeof event.which === 'number' ? event.which : event.keyCode;
+    
+    console.log(element);
     
     if (!character || character <= 32) {
       return false;
@@ -171,18 +175,22 @@
         textInputRange.move('character', start - (element.value.slice(0, start).split("\r\n").length - 1));
         textInputRange.select();
       }
-    } else if (element.nodeName === 'DIV') {
+    } else if (['DIV','IFRAME'].indexOf(element.nodeName) > -1) {
+      
       // Text convertion for content-editable <div> elements
       var textSelection, textInputRange, textNode;
       
-      if (window.getSelection) {
+      var contextWindow = (element.nodeName === 'IFRAME') ? element.contentWindow.window : window;
+      var contextDocument = (element.nodeName === 'IFRAME') ? element.contentWindow.document : document;
+      
+      if (contextWindow.getSelection) {
         // For newer browsers
-        textSelection = window.getSelection();
+        textSelection = contextWindow.getSelection();
         if (textSelection.getRangeAt && textSelection.rangeCount) {
           // Get range and put a converted character in the appropriate place
           textInputRange = textSelection.getRangeAt(0);
           textInputRange.deleteContents();
-          textNode = document.createTextNode(GeoKey.prototype.translate(String.fromCharCode(character)));
+          textNode = contextDocument.createTextNode(GeoKey.prototype.translate(String.fromCharCode(character)));
           textInputRange.insertNode(textNode);
 
           // Move point to last character
@@ -191,9 +199,9 @@
           textSelection.removeAllRanges();
           textSelection.addRange(textInputRange);
         }
-      } else if (document.selection && document.selection.createRange) {
+      } else if (contextDocument.selection && contextDocument.selection.createRange) {
         // For older IE browsers
-        textInputRange = document.selection.createRange();
+        textInputRange = contextDocument.selection.createRange();
         textInputRange.pasteHTML(GeoKey.prototype.translate(String.fromCharCode(character)));
       }
     } 
