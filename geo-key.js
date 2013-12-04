@@ -35,7 +35,7 @@
 (function(window, document, undefined){
   "use strict";
   
-  var GeoKey = function(params){
+  var GeoKey = function(params){    
     // Fix silently
     if (!(this instanceof GeoKey)) {
       return new GeoKey(arguments[0]);
@@ -43,6 +43,9 @@
         
     // Target set to non empty value will not work on IE6
     var defaults = {
+      target: '',
+      switch: 'no',
+      hotkey: 'yes'
     };
     
     // Provides ability to provide custom parameters
@@ -57,6 +60,7 @@
       }
       return defaults;
     }(params, defaults);
+    GeoKey.prototype.params = this.params;
     
     // Elements that need to be worked on
     this.elements = function(params){
@@ -66,6 +70,18 @@
         return document.getElementsByClassName(params.target);
       }
     }(this.params);
+    
+    // Switch hotkey
+    if (this.params.hotkey === 'yes') {
+      (function(that) {
+        that.listen(window, 'keydown', function(event){
+          if (event.keyCode === 192) {
+            that.params.switch = (that.params.switch === 'yes') ? 'no' : 'yes';
+            event.preventDefault();
+          }
+        });
+      }(this));
+    }
     
     // Track changes to inputs set
     var input, that = this;
@@ -81,6 +97,10 @@
   
   // Returns [a-z] input string in Georgian
   GeoKey.prototype.translate = function(string) {
+    if (this.params.switch !== 'yes') {
+      return string;
+    }
+    
     var input = string.split('');
     var result = '', offset, chr;
     
@@ -135,7 +155,7 @@
         // For modern browsers and IE9+
         start = element.selectionStart;
         end = element.selectionEnd;
-        element.value = element.value.slice(0, start) + GeoKey.prototype.translate(String.fromCharCode(character)) + element.value.slice(end);
+        element.value = element.value.slice(0, start) + this.translate(String.fromCharCode(character)) + element.value.slice(end);
         element.selectionStart = element.selectionEnd = start + 1;        
       } else {
         // For IE6, IE7, IE8  
@@ -167,7 +187,7 @@
         }
 
         // Add computed value in the right place
-        element.value = element.value.slice(0, start) + GeoKey.prototype.translate(String.fromCharCode(character)) + element.value.slice(end);
+        element.value = element.value.slice(0, start) + this.translate(String.fromCharCode(character)) + element.value.slice(end);
         start++;
 
         textInputRange = element.createTextRange();
@@ -191,7 +211,7 @@
           // Get range and put a converted character in the appropriate place
           textInputRange = textSelection.getRangeAt(0);
           textInputRange.deleteContents();
-          textNode = contextDocument.createTextNode(GeoKey.prototype.translate(String.fromCharCode(character)));
+          textNode = contextDocument.createTextNode(this.translate(String.fromCharCode(character)));
           textInputRange.insertNode(textNode);
 
           // Move point to last character
@@ -203,7 +223,7 @@
       } else if (contextDocument.selection && contextDocument.selection.createRange) {
         // For older IE browsers
         textInputRange = contextDocument.selection.createRange();
-        textInputRange.pasteHTML(GeoKey.prototype.translate(String.fromCharCode(character)));
+        textInputRange.pasteHTML(this.translate(String.fromCharCode(character)));
       }
     } 
     
