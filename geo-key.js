@@ -38,12 +38,11 @@
   var GeoKey = function(params){
     // Fix silently
     if (!(this instanceof GeoKey)) {
-      return new GeoKey(arguments);
+      return new GeoKey(arguments[0]);
     };
         
     // Target set to non empty value will not work on IE6
     var defaults = {
-      target: ''
     };
     
     // Provides ability to provide custom parameters
@@ -62,7 +61,7 @@
     // Elements that need to be worked on
     this.elements = function(params){
       if (params.target === '') {
-        return document.querySelectorAll('input[type=text],input[type=edit],textarea');
+        return document.querySelectorAll('input[type=text],input[type=edit],textarea,div');
       } else {
         return document.getElementsByClassName(params.target);
       }
@@ -109,6 +108,7 @@
   };
   
   GeoKey.prototype.listen = function(element, eventName, callback) {
+    console.log(element);
       if (element.addEventListener) {
           element.addEventListener(eventName, callback, false);
       } else if (element.attachEvent) {
@@ -124,51 +124,79 @@
     if (!character || character <= 32) {
       return false;
     }
-    
-    if (typeof element.selectionStart === 'number' && typeof element.selectionEnd === 'number') {        
-      // For modern browsers and IE9+
-      start = element.selectionStart;
-      end = element.selectionEnd;
-      element.value = element.value.slice(0, start) + GeoKey.prototype.translate(String.fromCharCode(character)) + element.value.slice(end);
-      element.selectionStart = element.selectionEnd = start + 1;        
-    } else {
-      // For IE6, IE7, IE8  
-      range = document.selection.createRange();
-      
-      charLength = element.value.length;
-      normal = element.value.replace(/\r\n/g, "\n");
-
-      // Input scope only
-      textInputRange = element.createTextRange();
-      textInputRange.moveToBookmark(range.getBookmark());
-
-      // Start and end of the selection should be at the end of input
-      endRange = element.createTextRange();
-      endRange.collapse(false);
-
-      if (textInputRange.compareEndPoints('StartToEnd', endRange) > -1) {
-          start = end = charLength;
+  
+    if (['INPUT','TEXTAREA'].indexOf(element.nodeName) > -1) {
+      // Text convertion for <input> and <textarea> elements
+      if (typeof element.selectionStart === 'number' && typeof element.selectionEnd === 'number') {        
+        // For modern browsers and IE9+
+        start = element.selectionStart;
+        end = element.selectionEnd;
+        element.value = element.value.slice(0, start) + GeoKey.prototype.translate(String.fromCharCode(character)) + element.value.slice(end);
+        element.selectionStart = element.selectionEnd = start + 1;        
       } else {
-          start = -textInputRange.moveStart('character', -charLength);
-          start += normal.slice(0, start).split("\n").length - 1;
+        // For IE6, IE7, IE8  
+        range = document.selection.createRange();
+      
+        charLength = element.value.length;
+        normal = element.value.replace(/\r\n/g, "\n");
 
-          if (textInputRange.compareEndPoints('EndToEnd', endRange) > -1) {
-              end = charLength;
-          } else {
-              end = -textInputRange.moveEnd('character', -charLength);
-              end += normal.slice(0, end).split("\n").length - 1;
-          }
+        // Input scope only
+        textInputRange = element.createTextRange();
+        textInputRange.moveToBookmark(range.getBookmark());
+
+        // Start and end of the selection should be at the end of input
+        endRange = element.createTextRange();
+        endRange.collapse(false);
+
+        if (textInputRange.compareEndPoints('StartToEnd', endRange) > -1) {
+            start = end = charLength;
+        } else {
+            start = -textInputRange.moveStart('character', -charLength);
+            start += normal.slice(0, start).split("\n").length - 1;
+
+            if (textInputRange.compareEndPoints('EndToEnd', endRange) > -1) {
+                end = charLength;
+            } else {
+                end = -textInputRange.moveEnd('character', -charLength);
+                end += normal.slice(0, end).split("\n").length - 1;
+            }
+        }
+
+        // Add computed value in the right place
+        element.value = element.value.slice(0, start) + GeoKey.prototype.translate(String.fromCharCode(character)) + element.value.slice(end);
+        start++;
+
+        textInputRange = element.createTextRange();
+        textInputRange.collapse(true);
+        textInputRange.move('character', start - (element.value.slice(0, start).split("\r\n").length - 1));
+        textInputRange.select();
       }
+    } else if (element.nodeName === 'DIV') {
+      // Text convertion for content-editable <div> elements
+      var textSelection, textInputRange, textNode;
+      
+      if (window.getSelection) {
+        // For newer browsers
+        textSelection = window.getSelection();
+        if (textSelection.getRangeAt && textSelection.rangeCount) {
+          // Get range and put a converted character in the appropriate place
+          textInputRange = textSelection.getRangeAt(0);
+          textInputRange.deleteContents();
+          textNode = document.createTextNode(GeoKey.prototype.translate(String.fromCharCode(character)));
+          textInputRange.insertNode(textNode);
 
-      // Add computed value in the right place
-      element.value = element.value.slice(0, start) + GeoKey.prototype.translate(String.fromCharCode(character)) + element.value.slice(end);
-      start++;
-
-      textInputRange = element.createTextRange();
-      textInputRange.collapse(true);
-      textInputRange.move('character', start - (element.value.slice(0, start).split("\r\n").length - 1));
-      textInputRange.select();
-    }
+          // Move point to last character
+          textInputRange.setStart(textNode, textNode.length);
+          textInputRange.setEnd(textNode, textNode.length);
+          textSelection.removeAllRanges();
+          textSelection.addRange(textInputRange);
+        }
+      } else if (document.selection && document.selection.createRange) {
+        // For older IE browsers
+        textInputRange = document.selection.createRange();
+        textInputRange.pasteHTML(GeoKey.prototype.translate(String.fromCharCode(character)));
+      }
+    } 
     
     if (event.preventDefault) {
       event.preventDefault();
