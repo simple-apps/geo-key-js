@@ -178,10 +178,11 @@
     } else if (['DIV','IFRAME'].indexOf(element.nodeName) > -1) {
       
       // Text convertion for content-editable <div> elements
-      var textSelection, textInputRange, textNode;
+      var textSelection, textInputRange, textNode, context;
       
-      var contextWindow = (element.nodeName === 'IFRAME') ? element.contentWindow.window : window;
-      var contextDocument = (element.nodeName === 'IFRAME') ? element.contentWindow.document : document;
+      var context = (element.contentWindow || element.contentDocument) || null;
+      var contextWindow = (element.nodeName === 'IFRAME') ? context.window : window;
+      var contextDocument = (element.nodeName === 'IFRAME') ? context.document : document;
       
       if (contextWindow.getSelection) {
         // For newer browsers
