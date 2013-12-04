@@ -71,22 +71,24 @@
       }
     }(this.params);
     
-    // Switch hotkey
-    if (this.params.hotkey === 'yes') {
-      (function(that) {
-        that.listen(window, 'keydown', function(event){
-          if (event.keyCode === 192) {
-            that.params.switch = (that.params.switch === 'yes') ? 'no' : 'yes';
-            event.preventDefault();
-          }
-        });
-      }(this));
-    }
-    
     // Track changes to inputs set
-    var input, that = this;
+    var context, input, that = this;
     for (var c = 0; c < this.elements.length; c += 1) {
       input = this.elements[c];
+      
+      // Switch hotkey
+      if (this.params.hotkey === 'yes') {
+        (function(that, input) {
+          context = (input.nodeName === 'IFRAME') ? (input.contentWindow || input.contentDocument).window : window;
+          that.listen(context, 'keydown', function(event){
+            if (event.keyCode === 192) {
+              that.params.switch = (that.params.switch === 'yes') ? 'no' : 'yes';
+              event.preventDefault();
+            }
+          });
+        }(this, input));
+      }
+      
       (function(that, input) { 
         that.listen(input, 'keypress', function(event){
           GeoKey.prototype.convert(input, event);
