@@ -180,7 +180,7 @@
       // Text convertion for content-editable <div> elements
       var textSelection, textInputRange, textNode, context;
       
-      var context = (element.contentWindow || element.contentDocument) || null;
+      var context = (element.contentWindow || element.contentDocument) || null; 
       var contextWindow = (element.nodeName === 'IFRAME') ? context.window : window;
       var contextDocument = (element.nodeName === 'IFRAME') ? context.document : document;
       
