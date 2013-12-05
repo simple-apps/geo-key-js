@@ -136,7 +136,7 @@
     if (element.addEventListener) {
         element.addEventListener(eventName, callback, false);
     } else if (element.attachEvent) {
-        element.attachEvent("on" + eventName, callback);
+        element.attachEvent('on' + eventName, callback);
     }
   }
   
@@ -300,7 +300,7 @@
 
       var t = Object(this);
       var len = t.length >>> 0;
-      if (typeof fun !== "function") { throw new TypeError(); }
+      if (typeof fun !== 'function') { throw new TypeError(); }
 
       var res = []; res.length = len;
       var thisp = arguments[1], i;
