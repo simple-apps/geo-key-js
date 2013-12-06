@@ -73,26 +73,12 @@
         return document.getElementsByClassName(params.target);
       }
     }(this.params);
-    
+        
     // Track changes to inputs set
     var context, input, that = this;
     for (var c = 0; c < this.elements.length; c += 1) {
       input = this.elements[c];
-      
-      // Switch hotkey
-      if (this.params.hotkey === 'yes') {
-        (function(that, input) {
-          context = (input.nodeName === 'IFRAME') ? (input.contentWindow || input.contentDocument).window : window;
-          that.listen(context, 'keydown', function(event){
-            if (event.keyCode === that.params.hotkeyNum) {
-              console.log('akac');
-              that.params.switch = (that.params.switch === 'yes') ? 'no' : 'yes';
-              event.preventDefault();
-            }
-          });
-        }(this, input));
-      }
-      
+  
       (function(that, input) { 
         that.listen(input, 'keypress', function(event){
           GeoKey.prototype.convert(input, event);
