@@ -35,7 +35,13 @@
 (function(window, document, undefined){
   "use strict";
   
-  var _geoKeyCheckbox = function() {
+  var _geoKeyCheckbox = function _geoKeyCheckbox() {
+    
+    if (this.pluginAry().indexOf('_geoKeyHotkey') > this.pluginAry().indexOf('_geoKeyCheckbox')) {
+      throw('_geoKeyCheckbox plugin depends on _geoKeyHotkey plugin. It should be loaded before!');
+      return false;
+    }
+    
     this.checkbox = document.getElementById(this.params.checkbox);
     this.lastFocus = null;
     
@@ -43,41 +49,27 @@
       return false;
     }
     
-    this.updateChecked();
+    this.update();
     
     var input, context, that = this;
-    for (var c = 0; c < this.elements.length; c += 1) {
-      input = this.elements[c];
 
-      (function(that, input) {
-        context = (input.nodeName === 'IFRAME') ? (input.contentWindow || input.contentDocument).window : input;
-        
-        that.listen(context, 'focus', function(event) {
-          that.lastFocus = input;
-        });
-        
-        if (that.params.hotkey === 'yes') {
-          that.listen(context, 'keydown', function(event){
-            if (event.keyCode === that.params.hotkeyNum) {
-              that.updateChecked();
-            }
-          });
-        }
-      }(this, input));
-    }
-    
     var that = this;
     this.listen(this.checkbox, 'click', function(event) {
       that.params.work = (event.srcElement.checked === true) ? 'yes' : 'no';
+      that.update();
       if (that.lastFocus !== null) {
         that.lastFocus.focus();
       }
     });
   };
   
-  GeoKey.prototype.updateChecked = function() {
-    this.checkbox.checked = (this.params.work === 'yes') ? true : false;
-  };
+  GeoKey.prototype.updateScreen.push(function() {
+    try {
+      this.checkbox.checked = (this.params.work === 'yes') ? true : false;
+    } catch(e) {
+      console.log('123')
+    }
+  });
   
   GeoKey.prototype.plugins.push(_geoKeyCheckbox);
 })(window, document);

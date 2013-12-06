@@ -35,7 +35,7 @@
 (function(window, document, undefined){
   "use strict";
   
-  var _geoKeyHotkey = function() {
+  var _geoKeyHotkey = function _geoKeyHotkey() {
     var input, context, that = this;
     for (var c = 0; c < this.elements.length; c += 1) {
       input = this.elements[c];
@@ -43,8 +43,9 @@
         (function(that, input) {
           context = (input.nodeName === 'IFRAME') ? (input.contentWindow || input.contentDocument).window : input;
           that.listen(context, 'keydown', function(event){
-            if (event.keyCode === that.params.hotkeyNum) {
+            if (event.keyCode === that.params.hotkeyNum) {              
               that.params.work = (that.params.work === 'yes') ? 'no' : 'yes';
+              that.update();
               event.preventDefault();
             }
           });

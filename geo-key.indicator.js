@@ -35,32 +35,48 @@
 (function(window, document, undefined){
   "use strict";
   
-  var _geoKeyIndicator = function() {
+  var _geoKeyIndicator = function _geoKeyIndicator() {
+    var classNames = {
+      on: 'geo',
+      off: 'eng'
+    };
+    
+    if (this.pluginAry().indexOf('_geoKeyHotkey') > this.pluginAry().indexOf('_geoKeyIndicator')) {
+      throw('_geoKeyIndicator plugin depends on _geoKeyHotkey plugin. It should be loaded before!');
+      return false;
+    }
+    
     this.indicator = document.getElementsByClassName(this.params.indicator);
     if (!this.indicator) {
       return false;
     }
     
-    this.updateIndicators();
+    this.update();
     
     var input, context, that = this;
-    for (var c = 0; c < this.elements.length; c += 1) {
-      input = this.elements[c];
-      if (that.params.hotkey === 'yes') {
-        (function(that, input) {
-          context = (input.nodeName === 'IFRAME') ? (input.contentWindow || input.contentDocument).window : window;
-          that.listen(context, 'keydown', function(event){
-            if (event.keyCode === that.params.hotkeyNum) {
-              that.updateIndicators();
-            }
-          });
-        }(this, input));
-      }
+
+    // Click events
+    var indicators = document.querySelectorAll('.indicator a');
+    for (var e in indicators) {
+      var element = indicators[e];
+      
+      (function(that, element) {
+        that.listen(element, 'click', function(event){
+         if (element.parentNode.className === classNames.on) {
+           that.params.work = 'no';
+         } else {
+           that.params.work = 'yes';
+         }
+         that.update();
+         if (that.lastFocus !== null) {
+           that.lastFocus.focus();
+         }
+        });
+      })(that, element);
     }
-    
   };
   
-  GeoKey.prototype.updateIndicators = function() {
+  GeoKey.prototype.updateScreen.push(function() {
     var container, eng, geo;
     for (var i in this.indicator) {
       if (this.indicator.hasOwnProperty(i)) {
@@ -82,7 +98,7 @@
         }
       }
     }
-  };
+  });
   
   GeoKey.prototype.plugins.push(_geoKeyIndicator);
 })(window, document);

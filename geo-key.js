@@ -79,6 +79,14 @@
     for (var c = 0; c < this.elements.length; c += 1) {
       input = this.elements[c];
   
+      (function(that, input) {
+        context = (input.nodeName === 'IFRAME') ? (input.contentWindow || input.contentDocument).window : input;
+        
+        that.listen(context, 'focus', function(event) {
+          that.lastFocus = input;
+        });
+      }(this, input));
+      
       (function(that, input) { 
         that.listen(input, 'keypress', function(event){
           GeoKey.prototype.convert(input, event);
@@ -93,6 +101,22 @@
   };
   
   GeoKey.prototype.plugins = [];
+  
+  GeoKey.prototype.pluginAry = function() {
+    var ary = [];
+    for (var p = 0; p < GeoKey.prototype.plugins.length; p += 1) {
+      ary[p] = GeoKey.prototype.plugins[p].name;
+    }
+    return ary;
+  };
+  
+  GeoKey.prototype.updateScreen = [];
+  
+  GeoKey.prototype.update = function() {
+    for (var f = 0; f < GeoKey.prototype.updateScreen.length; f += 1) {
+      GeoKey.prototype.updateScreen[f].call(this);
+    }
+  };
   
   // Returns [a-z] input string in Georgian
   GeoKey.prototype.translate = function(string) {
@@ -138,7 +162,8 @@
   }
   
   // Works on a DOM element to replace a character upon keypress
-  GeoKey.prototype.convert = function(element, event) {    
+  GeoKey.prototype.convert = function(element, event) {
+    console.log(event);   
     var start, end;
     var character = typeof event.which === 'number' ? event.which : event.keyCode;
     
