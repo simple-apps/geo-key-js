@@ -57,6 +57,7 @@
         }(this, input));
       }
     }
+    
   };
   
   GeoKey.prototype.updateIndicators = function() {
@@ -72,7 +73,7 @@
           continue;
         }
         
-        if (this.params.switch === 'yes') {
+        if (this.params.work === 'yes') {
           eng.style.display = 'none';
           geo.style.display = 'inline';
         } else {

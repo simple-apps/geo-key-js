@@ -44,7 +44,7 @@
     // Target set to non empty value will not work on IE6
     var defaults = {
       target: '',
-      switch: 'no',
+      work: 'no',
       hotkey: 'yes',
       hotkeyNum: 192,
       indicator: 'no'
@@ -96,7 +96,7 @@
   
   // Returns [a-z] input string in Georgian
   GeoKey.prototype.translate = function(string) {
-    if (this.params.switch !== 'yes') {
+    if (this.params.work !== 'yes') {
       return string;
     }
     

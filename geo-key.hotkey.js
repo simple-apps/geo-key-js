@@ -13,7 +13,7 @@
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
+ * copies of the Software, and to workpermit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
  *
  * The above copyright notice and this permission notice shall be included in
@@ -36,7 +36,6 @@
   "use strict";
   
   var _geoKeyHotkey = function() {
-    
     var input, context, that = this;
     for (var c = 0; c < this.elements.length; c += 1) {
       input = this.elements[c];
@@ -45,7 +44,7 @@
           context = (input.nodeName === 'IFRAME') ? (input.contentWindow || input.contentDocument).window : input;
           that.listen(context, 'keydown', function(event){
             if (event.keyCode === that.params.hotkeyNum) {
-              that.params.switch = (that.params.switch === 'yes') ? 'no' : 'yes';
+              that.params.work = (that.params.work === 'yes') ? 'no' : 'yes';
               event.preventDefault();
             }
           });
