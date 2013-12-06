@@ -45,7 +45,8 @@
     var defaults = {
       target: '',
       switch: 'no',
-      hotkey: 'yes'
+      hotkey: 'yes',
+      hotkeyNum: 192
     };
     
     // Provides ability to provide custom parameters
@@ -81,7 +82,8 @@
         (function(that, input) {
           context = (input.nodeName === 'IFRAME') ? (input.contentWindow || input.contentDocument).window : window;
           that.listen(context, 'keydown', function(event){
-            if (event.keyCode === 192) {
+            if (event.keyCode === that.params.hotkeyNum) {
+              console.log('akac');
               that.params.switch = (that.params.switch === 'yes') ? 'no' : 'yes';
               event.preventDefault();
             }
@@ -95,7 +97,14 @@
         });
       })(that, input);
     }
+    
+    // Plugins
+    for (var p = 0; p < GeoKey.prototype.plugins.length; p += 1) {
+      GeoKey.prototype.plugins[p].call(this);
+    }
   };
+  
+  GeoKey.prototype.plugins = [];
   
   // Returns [a-z] input string in Georgian
   GeoKey.prototype.translate = function(string) {
