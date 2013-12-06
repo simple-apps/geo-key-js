@@ -46,8 +46,10 @@
       target: '',
       switch: 'no',
       hotkey: 'yes',
-      hotkeyNum: 192
+      hotkeyNum: 192,
+      indicator: 'no'
     };
+    
     
     // Provides ability to provide custom parameters
     this.params = function(input, defaults) {
@@ -66,7 +68,7 @@
     // Elements that need to be worked on
     this.elements = function(params){
       if (params.target === '') {
-        return document.querySelectorAll('input[type=text],input[type=edit],textarea,div,iframe');
+        return document.querySelectorAll('input[type=text],input[type=edit],textarea,div[contenteditable],iframe');
       } else {
         return document.getElementsByClassName(params.target);
       }
