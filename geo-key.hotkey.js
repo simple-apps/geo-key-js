@@ -41,12 +41,16 @@
       input = this.elements[c];
       if (this.params.hotkey === 'yes') {
         (function(that, input) {
-          context = (input.nodeName === 'IFRAME') ? (input.contentWindow || input.contentDocument).window : input;
-          that.listen(context, 'keydown', function(event){
+          that.listen(input, 'keydown', function(event){
             if (event.keyCode === that.params.hotkeyNum) {              
               that.params.work = (that.params.work === 'yes') ? 'no' : 'yes';
               that.update();
-              event.preventDefault();
+              if (event.preventDefault) {
+                event.preventDefault();
+              } else {
+                event.returnValue = false;
+                return event;
+              }
             }
           });
         }(this, input));
