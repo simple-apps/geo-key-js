@@ -56,10 +56,17 @@
     var input, context, that = this;
 
     // Click events
-    var indicators = document.querySelectorAll('.indicator a');
+
+    var indicates = document.getElementsByTagName('a');
+    var indicators = [];
+    for (var t in indicates) {
+      if (indicates[t].className === 'flag' && indicates[t].parentNode.nodeName === 'DIV') {
+        indicators.push(indicates[t]);
+      }
+    }
+    
     for (var e in indicators) {
       var element = indicators[e];
-      
       (function(that, element) {
         that.listen(element, 'click', function(event){
          if (element.parentNode.className === classNames.on) {
@@ -68,6 +75,7 @@
            that.params.work = 'yes';
          }
          that.update();
+         
          if (that.lastFocus !== null) {
            that.lastFocus.focus();
          }
@@ -81,24 +89,25 @@
     for (var i in this.indicator) {
       if (this.indicator.hasOwnProperty(i)) {
         container = this.indicator[i];
-        
         try {
-          eng = container.getElementsByClassName('eng')[0];
-          geo = container.getElementsByClassName('geo')[0];
+          eng = document.getElementsByClassName('eng')[i];
+          geo = document.getElementsByClassName('geo')[i];
+          
+          if (this.params.work === 'yes') {
+            eng.style.display = 'none';
+            geo.style.display = 'inline';
+          } else {
+            eng.style.display = 'inline';
+            geo.style.display = 'none';
+          }
         } catch (e) {
           continue;
-        }
-        
-        if (this.params.work === 'yes') {
-          eng.style.display = 'none';
-          geo.style.display = 'inline';
-        } else {
-          eng.style.display = 'inline';
-          geo.style.display = 'none';
         }
       }
     }
   });
+  
+  
   
   GeoKey.prototype.plugins.push(_geoKeyIndicator);
 })(window, document);
