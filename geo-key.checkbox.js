@@ -67,7 +67,6 @@
     try {
       this.checkbox.checked = (this.params.work === 'yes') ? true : false;
     } catch(e) {
-      console.log('123')
     }
   });
   

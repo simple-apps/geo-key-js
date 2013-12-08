@@ -70,9 +70,9 @@
       (function(that, element) {
         that.listen(element, 'click', function(event){
          if (element.parentNode.className === classNames.on) {
-           that.params.work = 'no';
+           GeoKey.prototype.params.work = 'no';
          } else {
-           that.params.work = 'yes';
+           GeoKey.prototype.params.work = 'yes';
          }
          that.update();
          

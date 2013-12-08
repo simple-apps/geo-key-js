@@ -45,7 +45,7 @@
     var defaults = {
       target: '',
       work: 'no',
-      hotkey: 'yes',
+      hotkey: 'no',
       hotkeyNum: 192,
       indicator: 'no'
     };
@@ -89,7 +89,7 @@
       
       (function(that, input) { 
         that.listen(input, 'keypress', function(event){
-          GeoKey.prototype.convert(input, event);
+          GeoKey.prototype.convert.call(that, input, event);
         });
       })(that, input);
     }
@@ -163,11 +163,9 @@
   
   // Works on a DOM element to replace a character upon keypress
   GeoKey.prototype.convert = function(element, event) {
-    console.log(event);   
     var start, end;
     var character = typeof event.which === 'number' ? event.which : event.keyCode;
     
-    console.log(element);
     
     if (!character || character <= 32) {
       return false;
