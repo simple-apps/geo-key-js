@@ -2,7 +2,6 @@
 layout: page
 title: შესავალი
 description: Hello GeoKey!
-group: navigation
 ---
 {% include JB/setup %}
 
