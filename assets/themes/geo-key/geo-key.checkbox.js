@@ -55,7 +55,8 @@
 
     var that = this;
     this.listen(this.checkbox, 'click', function(event) {
-      that.params.work = (event.srcElement.checked === true) ? 'yes' : 'no';
+      var src = event.target || event.srcElement;
+      that.params.work = (src.checked === true) ? 'yes' : 'no';
       that.update();
       if (that.lastFocus !== null) {
         that.lastFocus.focus();
